@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Subir Documento</title>
+</head>
+<body>
+  <h1>Subir Documento a Azure Blob (via Azure Function)</h1>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadDocument()">Subir Documento</button>
+
+  <script>
+    async function uploadDocument() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Selecciona un archivo.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = async function () {
+        const base64Data = reader.result.split(",")[1]; // Extrae los datos del archivo
+        console.log("Nombre del archivo:", file.name);
+        console.log("Base64 del archivo:", base64Data);
+        const response = await fetch("http://localhost:3000/files/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Descomenta esta línea si tu APIM requiere clave de suscripción:
+            // "Ocp-Apim-Subscription-Key": "TU_CLAVE_DE_SUSCRIPCIÓN"
+          },
+          body: JSON.stringify({
+            fileName: file.name,
+            file: base64Data,
+            user_id: 1,
+            fileType: file.type
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.text();
+          alert("Documento subido exitosamente:\n" + result);
+        } else {
+          const error = await response.text();
+          alert("Error al subir:\n" + error);
+        }
+      };
+    }
+  </script>
+</body>
+</html>
