@@ -2,7 +2,7 @@ import { createPassword, deletePassword, getPasswordDetail, getPasswords, update
 
 export async function getUserPasswords(req,res) {
     try {
-        const {id} = req.body.id
+        const {id} = req.body
         const passwords = await getPasswords(id)
 
         return res.status(200).json({bandera:true, contrasenas: passwords})

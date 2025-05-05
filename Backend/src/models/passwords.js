@@ -1,7 +1,15 @@
 import db from '../../config/db.js'
 import {SecretsManagerClient, GetSecretValueCommand, CreateSecretCommand, UpdateSecretCommand, DeleteSecretCommand} from '@aws-sdk/client-secrets-manager'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const cliente = new SecretsManagerClient({region: 'us-east-1'})
+const cliente = new SecretsManagerClient({region: 'us-east-1', 
+    credentials:{
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+
+})
 
 async function getUserPasswords(id){
     const [rows] = await db.query('SELECT id,secret_name FROM credentials WHERE user_id = ?',[id])
