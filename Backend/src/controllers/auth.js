@@ -16,7 +16,25 @@ export async function register(req, res) {
             return res.status(400).json({ message: 'Formato de correo inválido' });
         }
 
-        const user = await authModel.register({ name, email, password, faceImage });
+        // Upload face image first
+        const uploadResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/cargarImagen', {
+            fileName: `face_${Date.now()}.jpg`,
+            fileType: 'image/jpeg',
+            fileContent: faceImage
+        });
+
+        if (!uploadResponse.data.fileUrl) {
+            throw new Error('Error al subir la imagen de registro');
+        }
+
+        // Register user with the image URL
+        const user = await authModel.register({ 
+            name, 
+            email, 
+            password, 
+            faceImage: uploadResponse.data.fileUrl 
+        });
+        
         res.status(201).json({ message: 'Usuario registrado exitosamente', user });
     } catch (error) {
         console.error('Error en registro:', error);
