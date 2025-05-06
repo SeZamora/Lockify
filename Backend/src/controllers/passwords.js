@@ -51,7 +51,7 @@ export async function getPasswordDetails(req,res) {
     try {
         const {id} = req.params
         const contrasena = await getPasswordDetail(id)
-        return res.status(200).json({bandera:true, contrasena: contrasena})
+        return res.status(200).json({bandera:true, contrasena: contrasena.datos})
     } catch (error) {
         return res.status(500).json({bandera:false, mensaje: error.message})
         

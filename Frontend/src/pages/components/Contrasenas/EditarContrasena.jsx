@@ -13,7 +13,7 @@ export const EditarContrasena = ({contrasena, handleEditarContrasena, setVerEmer
                     </div>
                     <div className="mb-4">
                         <label htmlFor="usuario" className="block text-sm font-medium text-gray-700">Usuario</label>
-                        <input type="text" id="usuario" name="usuario" defaultValue={contrasena.user_name} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" required />
+                        <input type="text" id="usuario" name="usuario" defaultValue={contrasena.username} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" required />
                     </div>
                     <div className="mb-4">
                         <label htmlFor="contrasena" className="block text-sm font-medium text-gray-700">Contraseña</label>
