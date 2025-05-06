@@ -2,19 +2,18 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import * as filesModel from '../models/files.js';
 
 const s3 = new S3Client({
-  region: process.env.AWS_REGION,                // p.ej. "us-east-1"
+  region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,  // define en tu .env
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   }
 });
-const BUCKET = process.env.BUCKET_NAME;          // p.ej. "mi-app-documentos-2025"
+const BUCKET = process.env.BUCKET_NAME;
 
 
 export async function getAllFiles(req, res) {
   try {
     const files = await filesModel.getAllFiles();
-
     return res.status(200).json(files);
   } catch (error) {
     console.error('Error fetching files:', error);
@@ -50,14 +49,13 @@ export async function createFile(req, res) {
       Key: key,
       Body: buffer,
       ContentType: fileType,
-      ACL: "public-read"               // o "public-read" si lo necesitas público
     });
     await s3.send(cmd);
     // 4. Construye la URL del objeto:
     const path = `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
     console.log('URL:', path); // URL del archivo en S3
     // const path = 'https://example.com/file.pdf'; // fake path
-    const [result] = await filesModel.createFile({ user_id, name: fileName, fileType, path });
+    const result = await filesModel.createFile({ user_id, name: fileName, fileType, path });
 
     if (result.affectedRows === 0) {
       return res.status(400).json({ message: 'Falló la creación del archivo' });
@@ -75,7 +73,7 @@ export async function updateFile(req, res) {
     const { id } = req.params;
     const { fileName } = req.body;
 
-    const [result] = await filesModel.updateFile({id, name: fileName})
+    const result = await filesModel.updateFile({id, name: fileName})
     if (result.affectedRows === 0) {
       return res.status(400).json({ message: 'Falló la actualización del archivo' });
     }
@@ -90,7 +88,7 @@ export async function updateFile(req, res) {
 export async function deleteFile(req, res) {
   try {
     const { id } = req.params;
-    const [result] = await filesModel.deleteFile(id);
+    const result = await filesModel.deleteFile(id);
 
     if (result.affectedRows === 0) {
       return res.status(400).json({ message: 'Falló la eliminación del archivo' });
