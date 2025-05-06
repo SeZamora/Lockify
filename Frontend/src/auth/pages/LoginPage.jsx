@@ -46,15 +46,14 @@ export const LoginPage = () => {
   const handleFotoCapturada = async (fotoBase64) => {
     notifySuccess("Foto capturada. Verificando...");
 
-    //const response = await verificarFoto(fotoBase64, usuarioTemp.id);
-    const prueba = true; 
-    if (prueba) {
+    const response = await verificarFoto(fotoBase64, usuarioTemp.id);
+    
+    if (response.exito) {
       notifySuccess("Identidad verificada. ¡Bienvenido!");
       //console.log(fotoBase64)
       login(usuarioTemp.username, usuarioTemp.id)
-
     } else {
-      notifyError("No se pudo verificar tu identidad.");
+      notifyError("Verificación fallida. Intenta nuevamente.");
     }
   };
 

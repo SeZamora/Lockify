@@ -49,7 +49,7 @@ export const RegistroUser = async (data, photoBase64) => {
                 name: data.name,
                 email: data.email,
                 password: data.password,
-                faceImage: "base64example"
+                faceImage: "BASE64"
             }),
         });
 
