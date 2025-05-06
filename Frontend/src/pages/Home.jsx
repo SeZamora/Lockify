@@ -104,7 +104,6 @@ export const Home = () => {
         password: e.target.contrasena.value,
         descripcion: e.target.descripcion.value || ''
       };
-  
       const res = await updateUserPassword(contrasena.id, data);
       if (res.exito) {
         notifySuccess("Contraseña actualizada correctamente.");
@@ -129,7 +128,8 @@ export const Home = () => {
     const handleVerContrasena = async (id) => {
       const res = await getPasswordDetails(id);
       if (res.exito) {
-        setContrasena(res.contrasena);
+        console.log({...res.contrasena,id:id})
+        setContrasena({...res.contrasena,id:id});
       } else {
         notifyError(res.mensaje);
       }
@@ -169,7 +169,7 @@ export const Home = () => {
         <div className="mt-2 grid grid-cols-3 p-4 gap-4">
           {contrasenas.map((con) => (
             <Card key={con.id} className="bg-bg-200 w-full p-10 rounded-md border-2 border-bg-300">
-              <h1 className="text-3xl font-bold text-center">{con.site_name}</h1>
+              <h1 className="text-3xl font-bold text-center">{con.datos}</h1>
               <div className="flex items-center justify-center mt-4">
                 <button
                   className="bg-green-400 px-4 py-1 rounded-md my-2 w-full text-white font-bold mr-2"
