@@ -38,6 +38,20 @@ export async function login({ email, password }) {
     };
 }
 
+export async function getUserFaceImage(userId) {
+    const [users] = await db.query('SELECT profile_picture FROM users WHERE id = ?', [userId]);
+    
+    if (users.length === 0) {
+        throw new Error('Usuario no encontrado');
+    }
+
+    if (!users[0].profile_picture) {
+        throw new Error('Usuario no tiene imagen facial registrada');
+    }
+
+    return users[0].profile_picture;
+}
+
 function generateTempToken() {
     // For now, just generate a random string
     return Math.random().toString(36).substring(2);
