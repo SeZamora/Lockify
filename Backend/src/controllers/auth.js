@@ -16,28 +16,43 @@ export async function register(req, res) {
             return res.status(400).json({ message: 'Formato de correo inválido' });
         }
 
-        // Upload face image first
-        const uploadResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/cargarImagen', {
-            fileName: `face_${Date.now()}.jpg`,
-            fileType: 'image/jpeg',
-            fileContent: faceImage
-        });
-
-        if (!uploadResponse.data.fileUrl) {
-            throw new Error('Error al subir la imagen de registro');
+        // Ensure the image string is properly formatted
+        let formattedImage = faceImage;
+        // Add padding if necessary
+        while (formattedImage.length % 4) {
+            formattedImage += '=';
         }
 
-        // Register user with the image URL
-        const user = await authModel.register({ 
-            name, 
-            email, 
-            password, 
-            faceImage: uploadResponse.data.fileUrl 
-        });
-        
-        res.status(201).json({ message: 'Usuario registrado exitosamente', user });
+        // Upload face image first
+        try {
+            const uploadResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/cargarImagen', {
+                fileName: `face_${Date.now()}.jpg`,
+                fileType: 'image/jpeg',
+                fileContent: formattedImage
+            });
+
+            if (!uploadResponse.data.fileUrl) {
+                throw new Error('Error al subir la imagen de registro');
+            }
+
+            // Register user with the image URL
+            const user = await authModel.register({ 
+                name, 
+                email, 
+                password, 
+                faceImage: uploadResponse.data.fileUrl 
+            });
+            
+            res.status(201).json({ message: 'Usuario registrado exitosamente', user });
+        } catch (error) {
+            console.error('Error al subir la imagen:', error);
+            return res.status(500).json({ message: 'Error al subir la imagen', details: error.message });
+        }
     } catch (error) {
         console.error('Error en registro:', error);
+        if (error.response?.data?.error) {
+            return res.status(400).json({ message: error.response.data.error });
+        }
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 }
@@ -70,34 +85,48 @@ export async function verifyFace(req, res) {
             return res.status(400).json({ message: 'Se requiere imagen facial y ID de usuario' });
         }
 
-        // 1. Primero, subir la imagen nueva usando el primer gateway
-        const uploadResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/cargarImagen', {
-            fileName: `face_verify_${Date.now()}.jpg`,
-            fileType: 'image/jpeg',
-            fileContent: faceImage
-        });
-
-        if (!uploadResponse.data.fileUrl) {
-            throw new Error('Error al subir la imagen de verificación');
+        // Ensure the image string is properly formatted
+        let formattedImage = faceImage;
+        // Add padding if necessary
+        while (formattedImage.length % 4) {
+            formattedImage += '=';
         }
 
-        // 2. Obtener la URL de la imagen almacenada del usuario desde la base de datos
-        const storedImageUrl = await authModel.getUserFaceImage(id);
+        // 1. Primero, subir la imagen nueva usando el primer gateway
+        try {
+            const uploadResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/cargarImagen', {
+                fileName: `face_verify_${Date.now()}.jpg`,
+                fileType: 'image/jpeg',
+                fileContent: formattedImage
+            });
 
-        // 3. Comparar las imágenes usando el segundo gateway
-        const compareResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/compararImagen', {
-            url1: uploadResponse.data.fileUrl,
-            url2: storedImageUrl
-        });
+            if (!uploadResponse.data.fileUrl) {
+                throw new Error('Error al subir la imagen de verificación');
+            }
 
-        const similarity = compareResponse.data.similitud || 0;
-        const threshold = 90; // Umbral de similitud (90%)
+            // 2. Obtener la URL de la imagen almacenada del usuario desde la base de datos
+            const storedImageUrl = await authModel.getUserFaceImage(id);
 
-        return res.json({
-            similitud: similarity >= threshold,
-            similarity: similarity
-        });
+            // 3. Comparar las imágenes usando el segundo gateway
+            const compareResponse = await axios.post('https://wu65aqdn9e.execute-api.us-east-1.amazonaws.com/compararImagen', {
+                url1: uploadResponse.data.fileUrl,
+                url2: storedImageUrl
+            });
 
+            const similarity = compareResponse.data.similitud || 0;
+            const threshold = 90; // Umbral de similitud (90%)
+
+            return res.json({
+                similitud: similarity >= threshold,
+                similarity: similarity
+            });
+        } catch (error) {
+            console.error('Error al procesar la imagen:', error);
+            return res.status(500).json({ 
+                message: 'Error al procesar la imagen',
+                error: error.message 
+            });
+        }
     } catch (error) {
         console.error('Error en verificación facial:', error);
         res.status(500).json({ 

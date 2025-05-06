@@ -49,7 +49,7 @@ export const RegistroUser = async (data, photoBase64) => {
                 name: data.name,
                 email: data.email,
                 password: data.password,
-                faceImage: "BASE64"
+                faceImage: photoBase64
             }),
         });
 
@@ -73,25 +73,29 @@ export const RegistroUser = async (data, photoBase64) => {
 
 export const verificarFoto = async (fotoBase64, id) => {
     try {
+        // Asegurarse de que solo enviamos la parte base64 sin el prefijo
+        const base64Image = fotoBase64.includes('base64,') ? fotoBase64.split('base64,')[1] : fotoBase64;
+        
         const response = await fetch(`${api}/auth/2fa`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                faceImage: fotoBase64,
+                faceImage: base64Image,
                 id
             }),
         });
 
         if (!response.ok) {
-            throw new Error('Error al verificar la foto');
+                        throw new Error('Error al verificar la foto');
         }
 
-
+        const data = await response.json();
         return {
-            exito: true,
-            mensaje: "Verificación exitosa",
+            exito: data.similitud,
+            mensaje: data.similitud ? "Verificación exitosa" : "Verificación fallida",
+            similarity: data.similarity
         };
 
     } catch (error) {
@@ -101,4 +105,3 @@ export const verificarFoto = async (fotoBase64, id) => {
         };
     }
 }
-    
